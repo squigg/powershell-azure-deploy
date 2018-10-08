@@ -1,0 +1,18 @@
+{
+  "AppName": "DotNetCoreHelloWorld",
+  "AppResourceGroup": "DotNetCoreHelloWorldResourceGroup",
+  "Regions": [ "Australia East" ],
+  "AppTemplate": "AzureWebService",
+  "SourceRepo": "https://github.com/martincronje/dotnetcore-helloworld",
+  "Project": "DotNetCoreHelloWorld\\WebApi",
+  "Tests": [
+    {
+      "EndPoint": "/api/values",
+      "Expects": [ "value1", "value2" ]
+    },
+    {
+      "EndPoint": "/api/values/1",
+      "Expects": "value"
+    }
+  ]
+}

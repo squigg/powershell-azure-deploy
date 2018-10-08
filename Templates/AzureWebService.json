@@ -1,0 +1,91 @@
+﻿{
+  "$schema":"https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion":"1.0.0.0",
+  "parameters":{
+    "AppName":{
+      "type":"string"
+    },
+    "ServicePlanName":{
+      "type":"string",
+      "defaultValue":"[concat(parameters('AppName'), '-ServicePlan')]"
+    },
+    "Region":{
+      "type":"string"
+    },
+    "AppResourceGroup":{
+      "type":"string"
+    },
+    "Sku":{
+      "type":"string",
+      "defaultValue":"Standard"
+    },
+    "SkuCode":{
+      "type":"string",
+      "defaultValue":"S1"
+    },
+    "WorkerSize":{
+      "type":"string",
+      "defaultValue":"0"
+    },
+    "NumberWorkers":{
+      "type":"string",
+      "defaultValue":"1"
+    },
+    "Slots":{
+      "type":"array",
+      "defaultValue":[
+        "staging",
+        "test"
+      ]
+    }
+  },
+  "variables": {
+    "WebServicePlanName": "[concat(parameters('ServicePlanName'), '-', replace(parameters('Region'),' ',''), '-', uniqueString(parameters('AppResourceGroup')))]",
+    "WebAppName": "[concat(parameters('AppName'), '-', replace(parameters('Region'),' ',''), '-', uniqueString(parameters('AppResourceGroup')))]"
+  },
+  "resources":[
+    {
+      "apiVersion":"2017-08-01",
+      "type":"Microsoft.Web/serverfarms",
+      "kind":"app",
+      "name":"[variables('WebServicePlanName')]",
+      "location":"[parameters('Region')]",
+      "properties":{
+
+      },
+      "sku":{
+        "name":"[parameters('SkuCode')]"
+      }
+    },
+    {
+      "apiVersion":"2016-08-01",
+      "type":"Microsoft.Web/sites",
+      "kind":"app",
+      "name":"[variables('WebAppName')]",
+      "location":"[parameters('Region')]",
+      "properties":{
+        "serverFarmId":"[resourceId('Microsoft.Web/serverfarms', variables('WebServicePlanName'))]"
+      },
+      "dependsOn":[
+        "[resourceId('Microsoft.Web/serverfarms', variables('WebServicePlanName'))]"
+      ]
+    },
+    {
+      "apiVersion":"2016-08-01",
+      "type":"Microsoft.Web/sites/slots",
+      "name":"[concat(variables('WebAppName'), '/', parameters('Slots')[copyIndex()])]",
+      "kind":"app",
+      "location":"[parameters('Region')]",
+      "properties":{
+        "serverFarmId":"[resourceId('Microsoft.Web/serverfarms', variables('WebServicePlanName'))]"
+      },
+      "dependsOn":[
+        "[resourceId('Microsoft.Web/Sites', variables('WebAppName'))]"
+      ],
+      "copy":{
+        "name":"WebAppSlot",
+        "count":"[length(parameters('Slots'))]"
+      }
+    }
+  ]
+}
